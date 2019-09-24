@@ -87,23 +87,21 @@ object Ex4Traits extends App {
 
   // 4.6.3.2 The Forest of Trees
   // pattern matching
-  sealed trait Tree {}
+  sealed trait Tree
   final case class Node(left: Tree, right: Tree) extends Tree
   final case class Leaf(element: Int) extends Tree
 
   object Tree {
-    def mkSpace(i: Int) = Array.fill(i) { " " }.mkString("")
+    def mkSpace(i: Int) = Array.fill(i)(" ").mkString("")
     def prettyPrint(t: Tree): String = {
       @tailrec
       def inner(l: List[(Tree, Int)], indent: Int, acc: String): String =
         l match {
           case Nil => acc
           case (Leaf(v), ind) :: ls =>
-            inner(ls.map(el => (el._1, el._2)),
-                  ind,
-                  acc + mkSpace(ind) + v + "\n")
+            inner(ls, ind, acc + mkSpace(ind) + v + "\n")
           case (Node(a, b), ind) :: ls =>
-            inner((a, ind + 1) :: (b, ind + 1) :: ls.map(el => (el._1, el._2)),
+            inner((a, ind + 1) :: (b, ind + 1) :: ls,
                   ind,
                   acc + mkSpace(ind) + "\n")
         }
@@ -119,33 +117,33 @@ object Ex4Traits extends App {
         }
       inner(List(t), 0)
     }
-    def fold[B](t: Tree)(map: Int => B)(red: (B, B) => B): B = {
+    def map(t: Tree)(f: Leaf => Leaf): Tree = {
 
       case object BranchStub extends Tree
 
       @tailrec
-      def foldImp(toVisit: List[Tree], acc: Vector[B]): Vector[B] =
+      def mapImp(toVisit: List[Tree], acc: Vector[Tree]): Vector[Tree] =
         if (toVisit.isEmpty) acc
         else {
           toVisit.head match {
             case Leaf(v) =>
-              val leafRes = map(v)
-              foldImp(
+              val leafRes = f(Leaf(v))
+              mapImp(
                 toVisit.tail,
                 acc :+ leafRes
               )
             case Node(l, r) =>
-              foldImp(l :: r :: BranchStub :: toVisit.tail, acc)
+              mapImp(l :: r :: BranchStub :: toVisit.tail, acc)
             case BranchStub =>
-              foldImp(toVisit.tail,
-                      acc.dropRight(2) ++ Vector(acc.takeRight(2).reduce(red)))
+              mapImp(toVisit.tail,
+                     acc.dropRight(2) ++ Vector(acc.takeRight(2).reduce(Node)))
           }
         }
 
-      foldImp(t :: Nil, Vector.empty).head
+      mapImp(t :: Nil, Vector.empty).head
 
     }
-    def double(t: Tree): Tree = fold(t)(x => Leaf(x * 2): Tree)(Node(_, _))
+    def double(t: Tree): Tree = map(t)(x => Leaf(x.element * 2))
   }
   val t =
     Node(
