@@ -2,6 +2,8 @@ package essential_scala
 
 import java.util.Date
 
+import scala.annotation.tailrec
+
 object Ex4Traits extends App {
 
   //  4.1.4.1 Cats,and MoreCats
@@ -58,16 +60,16 @@ object Ex4Traits extends App {
   }
 
   //  4.5.6.3 Email
-  trait Visitor {
+  sealed trait Visitor {
     def id: String
     def createdAt: Date
     def age: Long = new Date().getTime - createdAt.getTime
   }
-  case class Anonymous(
+  final case class Anonymous(
     id: String,
     createdAt: Date = new Date()
   ) extends Visitor
-  case class User(
+  final case class User(
     id: String,
     email: String,
     createdAt: Date = new Date()
@@ -86,24 +88,64 @@ object Ex4Traits extends App {
   // 4.6.3.2 The Forest of Trees
   // pattern matching
   sealed trait Tree {}
-  case class Node(left: Tree, right: Tree) extends Tree
-  case class Leaf(element: Int) extends Tree
-  object Math {
-    def prettyPrint(t: Tree, indent: String): Unit = t match {
-      case (t: Node) =>
-        prettyPrint(t.left, indent + " ")
-        prettyPrint(t.right, indent + " ")
-        println(indent + ".")
-      case (t: Leaf) => println(indent + t.element)
+  final case class Node(left: Tree, right: Tree) extends Tree
+  final case class Leaf(element: Int) extends Tree
+
+  object Tree {
+    def mkSpace(i: Int) = Array.fill(i) { " " }.mkString("")
+    def prettyPrint(t: Tree): String = {
+      @tailrec
+      def inner(l: List[(Tree, Int)], indent: Int, acc: String): String =
+        l match {
+          case Nil => acc
+          case (Leaf(v), ind) :: ls =>
+            inner(ls.map(el => (el._1, el._2)),
+                  ind,
+                  acc + mkSpace(ind) + v + "\n")
+          case (Node(a, b), ind) :: ls =>
+            inner((a, ind + 1) :: (b, ind + 1) :: ls.map(el => (el._1, el._2)),
+                  ind,
+                  acc + mkSpace(ind) + "\n")
+        }
+      inner(List((t, 0)), 0, "")
     }
-    def sum(t: Tree): Int = t match {
-      case (t: Node) => sum(t.left) + sum(t.right)
-      case (t: Leaf) => t.element
+    def sum(t: Tree): Int = {
+      @tailrec
+      def inner(l: List[Tree], acc: Int): Int =
+        l match {
+          case Nil              => acc
+          case Leaf(v) :: ls    => inner(ls, acc + v)
+          case Node(a, b) :: ls => inner(a :: b :: ls, acc)
+        }
+      inner(List(t), 0)
     }
-    def double(t: Tree): Tree = t match {
-      case (t: Node) => Node(double(t.left), double(t.right))
-      case (t: Leaf) => Node(Leaf(t.element), Leaf(t.element))
+    def fold[B](t: Tree)(map: Int => B)(red: (B, B) => B): B = {
+
+      case object BranchStub extends Tree
+
+      @tailrec
+      def foldImp(toVisit: List[Tree], acc: Vector[B]): Vector[B] =
+        if (toVisit.isEmpty) acc
+        else {
+          toVisit.head match {
+            case Leaf(v) =>
+              val leafRes = map(v)
+              foldImp(
+                toVisit.tail,
+                acc :+ leafRes
+              )
+            case Node(l, r) =>
+              foldImp(l :: r :: BranchStub :: toVisit.tail, acc)
+            case BranchStub =>
+              foldImp(toVisit.tail,
+                      acc.dropRight(2) ++ Vector(acc.takeRight(2).reduce(red)))
+          }
+        }
+
+      foldImp(t :: Nil, Vector.empty).head
+
     }
+    def double(t: Tree): Tree = fold(t)(x => Leaf(x * 2): Tree)(Node(_, _))
   }
   val t =
     Node(
@@ -116,9 +158,9 @@ object Ex4Traits extends App {
       ),
       Leaf(2)
     )
-  Math.prettyPrint(t, "")
-  println(Math.sum(t))
-  Math.prettyPrint(Math.double(t), "")
+  println(Tree.prettyPrint(t))
+  println(Tree.sum(t))
+  println(Tree.prettyPrint(Tree.double(t)))
 
   // using polymorphism
   sealed trait Tree1 {
