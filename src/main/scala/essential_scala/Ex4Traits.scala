@@ -117,7 +117,7 @@ object Ex4Traits extends App {
         }
       inner(List(t), 0)
     }
-    def map(t: Tree)(f: Leaf => Leaf): Tree = {
+    def map(t: Tree)(f: Int => Int): Tree = {
 
       case object BranchStub extends Tree
 
@@ -127,7 +127,7 @@ object Ex4Traits extends App {
         else {
           toVisit.head match {
             case Leaf(v) =>
-              val leafRes = f(Leaf(v))
+              val leafRes = Leaf(f(v))
               mapImp(
                 toVisit.tail,
                 acc :+ leafRes
@@ -143,7 +143,7 @@ object Ex4Traits extends App {
       mapImp(t :: Nil, Vector.empty).head
 
     }
-    def double(t: Tree): Tree = map(t)(x => Leaf(x.element * 2))
+    def double(t: Tree): Tree = map(t)(_ * 2)
   }
   val t =
     Node(
