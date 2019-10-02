@@ -43,6 +43,14 @@ object Ex2Expressions extends App {
     def cube(l: Double): Double = l * square(l)
   }
 
+  // 2.4.5.3 Precise Square Dance!
+  object calc2 {
+    def square(l: Double) = l * l
+    def cube(l: Double) = l * square(l)
+    def square(l: Int) = l * l
+    def cube(l: Int) = l * square(l)
+  }
+
   // 2.4.5.4 Order of evaluation
   // a = 1, b = 3, c = "3c"
   // 3c31
@@ -58,4 +66,23 @@ object Ex2Expressions extends App {
 
     // No
   }
+
+  // 2.4.5.6 The Value of Methods
+  object calculator {
+    def square(x: Int) = x * x
+  }
+  // only expression or value can be assigned to a field
+  // val someField = calculator.square
+  // gives compile error: missing argument list for method square in object calculator,
+  // so methods are not values nor expressions
+  val someField = calculator.square _
+  // functions are objects and functions are also values
+  // calls of methods yields values
+
+  //  2.6.4.1 A Classic Rivalry
+  // type - String, value - "predator"
+  // 2.6.4.2 A Less Well Known Rivalry
+  // type - Any, value - 2001
+  // 2.6.4.3 An if Without an else
+  // type - Any, value - ()
 }
