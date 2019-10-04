@@ -74,14 +74,23 @@ object Ex3Classes extends App {
     colour: String,
     food: String
   )
+
+  // 3.3.2.1 Friendly Person Factory
+  println(Person("James Bond"))
+  println(Person("Chingachgook The Great Snake"))
+  println(Person("Chingachgook"))
+  println(Person(""))
 }
 
 // 3.3.2.1 Friendly Person Factory
-class Person(firstName: String, lastName: String)
+class Person(firstName: String, lastName: String) {
+  override def toString: String = s"$firstName $lastName"
+}
 object Person {
   def apply(name: String): Person = {
-    val parts = name.split(" ")
-    new Person(parts(0), parts(1))
+    name.split(" ").toList match {
+      case f :: l => new Person(f, l.mkString(" "))
+    }
   }
 }
 
