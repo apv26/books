@@ -90,6 +90,7 @@ object Person {
   def apply(name: String): Person = {
     name.split(" ").toList match {
       case f :: l => new Person(f, l.mkString(" "))
+      case Nil => Person("")
     }
   }
 }
