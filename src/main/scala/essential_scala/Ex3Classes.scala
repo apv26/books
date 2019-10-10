@@ -1,5 +1,7 @@
 package essential_scala
 
+import essential_scala.Ex3Classes.Adder
+
 object Ex3Classes extends App {
 
   //  3.1.6.1 Cats,Again
@@ -80,6 +82,17 @@ object Ex3Classes extends App {
   println(Person("Chingachgook The Great Snake"))
   println(Person("Chingachgook"))
   println(Person(""))
+
+  // 3.4.5.3 Case Class Counter
+  println(Counter2(0))
+  println(Counter2().inc)
+  println(Counter2().inc.dec == Counter2().inc.dec)
+
+  // 3.4.5.4 Application, Application, Application
+  println(Person1("James Bond"))
+  println(Person1("Chingachgook The Great Snake"))
+  println(Person1("Chingachgook"))
+  println(Person1(""))
 }
 
 // 3.3.2.1 Friendly Person Factory
@@ -139,5 +152,80 @@ object Film {
   }
   def oldestDirectorAtTheTime(film1: Film, film2: Film): Director = {
     if (film1.directorAge > film2.directorAge) film1.director else film2.director
+  }
+}
+
+  // 3.3.2.3 Type or Value?
+  // val prestige: Film = bestFilmByChristopherNolan()
+  // type
+  // new Film("LastActionHero", 1993, mcTiernan)
+  // type
+  // Film("LastActionHero", 1993, mcTiernan)
+  // value
+  // Film.newer(highPlainsDrifter, thomasCrownAffair)
+  // value
+  // Film.type
+  // value
+
+// 3.4.5.2 Roger Ebert Said it Best...
+case class Director1(
+  firstName: String,
+  lastName: String,
+  yearOfBirth: Int
+) {
+  def name: String = s"$firstName$lastName"
+}
+object Director1 {
+  def older(director1: Director1, director2: Director1): Director1 =
+    if (director1.yearOfBirth < director2.yearOfBirth) director1 else director2
+}
+case class Film1(
+  name: String,
+  yearOfRealease: Int,
+  imbdRating: Double,
+  director: Director1
+) {
+  def directorAge = yearOfRealease - director.yearOfBirth
+  def isDirectedBy(director: Director1) = this.director == director
+}
+object Film1 {
+  def highestRating(film1: Film1, film2: Film1): Double = {
+    val rating1 = film1.imbdRating
+    val rating2 = film2.imbdRating
+    if (rating1 >= rating2) rating1 else rating2
+  }
+  def oldestDirectorAtTheTime(film1: Film1, film2: Film1): Director1 = {
+    if (film1.directorAge > film2.directorAge) film1.director else film2.director
+  }
+}
+// case class features
+// a field for each constructor argument — we don’t even need to write val
+// copy method
+// apply methods - create Instance without new
+// provides equals methods, toString methods, and pattern matching
+
+// 3.4.5.3 Case Class Counter
+case class Counter2(count: Int = 0) {
+  def dec = copy(count = count - 1)
+  def inc = copy(count = count + 1)
+}
+
+// 3.4.5.4 Application, Application, Application
+case class Person1(firstName: String, lastName: String)
+object Person1 {
+  def apply(name: String): Person1 = {
+    name.split(" ").toList match {
+      case f :: l => new Person1(f, l.mkString(" "))
+      case Nil => Person1("")
+    }
+  }
+}
+
+// 3.5.3.2 Get Off My Lawn!
+object Dad {
+  def rate(film: Film1): Double = film match {
+    case Film1(_, _, _, Director1("Clint", "Eastwood", _)) => 10.0
+    case Film1(_, _, _, Director1("John", "McTiernan", _)) => 7.0
+    case _ => 3.0
   }
 }
