@@ -195,3 +195,26 @@ object Ex4Traits extends App {
   println(t1.sum())
   t1.double().prettyPrint("")
 }
+
+// 4.1.4.3 Shaping Up 2 (Da Streets)
+trait Shape {
+  def sides: Int
+  def perimeter: Double
+  def area: Double
+}
+
+sealed trait Rectangular extends Shape {
+  def a: Double
+  def b: Double
+  val sides = 4
+  override val perimeter = 2 * (a + b)
+  override val area = a * b
+}
+
+case class Rectangle(a: Double, b: Double) extends Rectangular
+
+case class Square(
+  a: Double
+) extends Rectangular {
+  val b = a
+}
