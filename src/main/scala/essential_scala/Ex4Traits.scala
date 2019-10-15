@@ -37,7 +37,7 @@ object Ex4Traits extends App {
     def area: Double
   }
 
-  case class Circle(
+  case class Circle1(
     radius: Double
   ) extends Shape {
     val sides = 1
@@ -45,7 +45,7 @@ object Ex4Traits extends App {
     val area = math.Pi * radius * radius
   }
 
-  case class Rectangle(a: Double, b: Double) extends Shape {
+  case class Rectangle1(a: Double, b: Double) extends Shape {
     val sides = 4
     val perimeter = 2 * (a + b)
     val area = a * b
@@ -194,13 +194,22 @@ object Ex4Traits extends App {
   t1.prettyPrint("")
   println(t1.sum())
   t1.double().prettyPrint("")
+
+  // 4.2.2.2 The Color and the Shape
+  val darkBlue = Colour(0, 0, 102)
+  val lightYellow = Colour(255, 255, 204)
+  println("darkBlue id dark: " + darkBlue.isDark)
+  println("lightYellow id dark: " + lightYellow.isDark)
+  println(Draw(Circle(10, Yellow)))
+  println(Draw(Rectangle(2, 4, Colour(23, 43, 55))))
 }
 
 // 4.1.4.3 Shaping Up 2 (Da Streets)
-trait Shape {
+sealed trait Shape {
   def sides: Int
   def perimeter: Double
   def area: Double
+  def color: Color
 }
 
 sealed trait Rectangular extends Shape {
@@ -211,10 +220,62 @@ sealed trait Rectangular extends Shape {
   override val area = a * b
 }
 
-case class Rectangle(a: Double, b: Double) extends Rectangular
+case class Rectangle(a: Double, b: Double, color: Color) extends Rectangular
 
 case class Square(
-  a: Double
+  a: Double, color: Color
 ) extends Rectangular {
   val b = a
+}
+
+case class Circle(
+  radius: Double, color: Color
+) extends Shape {
+  val sides = 1
+  val perimeter = math.Pi * 2 * radius
+  val area = math.Pi * radius * radius
+}
+
+// 4.2.2.2 The Color and the Shape
+// 4.2.2.1 Printing Shapes
+object Draw {
+  def apply(s: Shape): String = s match {
+    case Circle(r, c) => s"A ${Draw(c)} circle of radius ${r}cm"
+    case Rectangle(a, b, c) => s"A ${Draw(c)} rectangle of width ${a}cm and height ${b}cm"
+  }
+  def apply(c: Color): String = c match {
+    case Red => "red"
+    case Yellow => "yellow"
+    case Pink => "pink"
+    case c => if(c.isDark) "dark" else "light"
+  }
+}
+//[warn] C:\work\books\src\main\scala\essential_scala\Ex4Traits.scala:232:25: match may not be exhaustive.
+//[warn] It would fail on the following input: Square(_)
+//[warn]   def apply(s: Shape) = s match {
+
+// 4.2.2.2 The Color and the Shape
+sealed trait Color {
+  def r: Int
+  def g: Int
+  def b: Int
+  def isDark: Boolean =
+    (r * 299 + g * 587 + b * 114) / 1000 < 125
+}
+final case class Colour(r: Int, g: Int, b: Int) extends Color
+
+case object Red extends Color {
+  val r = 255
+  val g = 0
+  val b = 0
+}
+case object Yellow extends Color {
+  val r = 255
+  val g = 0
+  val b = 0
+}
+case object Pink extends Color {
+  val r = 248
+  val g = 24
+  val b = 148
 }
