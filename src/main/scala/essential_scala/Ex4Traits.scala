@@ -202,6 +202,14 @@ object Ex4Traits extends App {
   println("lightYellow id dark: " + lightYellow.isDark)
   println(Draw(Circle(10, Yellow)))
   println(Draw(Rectangle(2, 4, Colour(23, 43, 55))))
+
+  // 4.2.2.3 A Short Division Exercise
+  val x = Divide(1, 2)
+  val y = Divide(1, 0)
+  println(x)
+  println(y)
+  println(Divide.perform(1, 2))
+  println(Divide.perform(1, 0))
 }
 
 // 4.1.4.3 Shaping Up 2 (Da Streets)
@@ -279,3 +287,38 @@ case object Pink extends Color {
   val g = 24
   val b = 148
 }
+
+// 4.2.2.3 A Short Division Exercise
+sealed trait DivisionResult
+final case class Finite(res: Int) extends DivisionResult
+case object Infinite extends DivisionResult
+object Divide {
+  def apply(n1: Int, n2: Int) =
+    if(n2 == 0) Infinite else Finite(n1 / n2)
+  def perform(n1: Int, n2: Int) =
+    apply(n1, n2) match {
+      case Infinite => "Division by zero is denied"
+      case Finite(x) => s"Result: $x"
+    }
+}
+
+// 4.4.4.1 Stop on a Dime
+// is a or, sum type pattern, ADT
+sealed trait TrafficLight
+case object Red1 extends TrafficLight
+case object Green1 extends TrafficLight
+case object Yellow1 extends TrafficLight
+
+// 4.4.4.2 Calculator
+// is a or, sum type pattern, ADT
+sealed trait Calculation
+final case class Success(result: Int) extends Calculation
+final case class Failure(message: String) extends Calculation
+
+// 4.4.4.3 Water, Water, Everywhere
+sealed trait Source
+case object Well extends Source
+case object Spring extends Source
+case object Tap extends Source
+// has a and, product type pattern, ADT
+final case class BottledWater(size: Int, source: Source, carbonated: Boolean)
