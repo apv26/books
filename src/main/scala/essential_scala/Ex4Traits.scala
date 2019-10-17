@@ -198,7 +198,7 @@ object Ex4Traits extends App {
   // 4.2.2.2 The Color and the Shape
   val darkBlue = Colour(0, 0, 102)
   val lightYellow = Colour(255, 255, 204)
-  println("darkBlue id dark: " + darkBlue.isDark)
+  println(s"darkBlue id dark: ${darkBlue.isDark}")
   println("lightYellow id dark: " + lightYellow.isDark)
   println(Draw(Circle(10, Yellow)))
   println(Draw(Rectangle(2, 4, Colour(23, 43, 55))))
