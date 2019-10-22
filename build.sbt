@@ -9,5 +9,7 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("snapshots")
 )
 libraryDependencies ++= Seq(
-  "com.chuusai" %% "shapeless" % "2.3.3"
+  "com.chuusai" %% "shapeless" % "2.3.3",
+  "org.typelevel" %% "cats-core" % "2.0.0",
+  "org.typelevel" %% "cats-effect" % "2.0.0"
 )

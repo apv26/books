@@ -210,6 +210,14 @@ object Ex4Traits extends App {
   println(y)
   println(Divide.perform(1, 2))
   println(Divide.perform(1, 0))
+
+  // 4.5.6.2 Calculation
+  assert(Calculator.+(Success(1), 1) == Success(2))
+  assert(Calculator.-(Success(1), 1) == Success(0))
+  assert(Calculator.+(Failure("Badness"), 1) == Failure("Badness"))
+  assert(Calculator./(Success(4), 2) == Success(2))
+  assert(Calculator./(Success(4), 0) == Failure("Division by zero"))
+  assert(Calculator./(Failure("Badness"), 0) == Failure("Badness"))
 }
 
 // 4.1.4.3 Shaping Up 2 (Da Streets)
@@ -302,18 +310,53 @@ object Divide {
     }
 }
 
+// 4.5.6.1 Traffic Lights
 // 4.4.4.1 Stop on a Dime
 // is a or, sum type pattern, ADT
-sealed trait TrafficLight
-case object Red1 extends TrafficLight
-case object Green1 extends TrafficLight
-case object Yellow1 extends TrafficLight
+sealed trait TrafficLight {
+  def next1: TrafficLight
+  def next: TrafficLight = this match {
+    case Red1 => Green1
+    case Green1 => Yellow1
+    case Yellow1 => Red1
+  }
+}
+case object Red1 extends TrafficLight {
+  def next1: TrafficLight = Green1
+}
+case object Green1 extends TrafficLight {
+  def next1: TrafficLight = Yellow1
+}
+case object Yellow1 extends TrafficLight {
+  def next1: TrafficLight = Red1
+}
+// > Do you think it is better to implement this method next inside or outside the class?
+// Inside, because all we need contains in class and we don't want multiple implementation of it.
+// > If inside, would you use pattern matching or polymorphism? Why?
+// I would use pattern matching, because I already know all subtypes and I can easy add new method.
 
+// 4.5.6.2 Calculation
 // 4.4.4.2 Calculator
 // is a or, sum type pattern, ADT
 sealed trait Calculation
 final case class Success(result: Int) extends Calculation
 final case class Failure(message: String) extends Calculation
+
+object Calculator {
+  def +(c: Calculation, i: Int): Calculation = c match {
+    case Success(j) => Success(j + i)
+    case Failure(f) => Failure(f)
+  }
+  def -(c: Calculation, i: Int): Calculation = c match {
+    case Success(j) => Success(j - i)
+    case Failure(f) => Failure(f)
+  }
+  def /(c: Calculation, i: Int): Calculation = c match {
+    case Success(j) if i == 0 => Failure("Division by zero")
+    case Success(j) => Success(j / i)
+    case Failure(f) => Failure(f)
+  }
+}
 
 // 4.4.4.3 Water, Water, Everywhere
 sealed trait Source
