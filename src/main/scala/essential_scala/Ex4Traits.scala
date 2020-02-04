@@ -228,6 +228,22 @@ object Ex4Traits extends App {
   assert(example.length == 3)
   assert(example.tail.length == 2)
   assert(End.length == 0)
+
+  assert(example.product == 6)
+  assert(example.tail.product == 6)
+  assert(End.product == 1)
+
+  assert(example.double == Pair(2, Pair(4, Pair(6, End))))
+  assert(example.tail.double == Pair(4, Pair(6, End)))
+  assert(End.double == End)
+
+  assert(
+    Addition(SquareRoot(Number(-1.0)), Number(2.0)).eval == Error(
+      "Square root of negative number"
+    )
+  )
+  assert(Addition(SquareRoot(Number(4.0)), Number(2.0)).eval == Value(4.0))
+  assert(Division(Number(4), Number(0)).eval == Error("Division by zero"))
 }
 
 // 4.1.4.3 Shaping Up 2 (Da Streets)
@@ -386,12 +402,90 @@ sealed trait IntList {
     @tailrec
     def iter(acc: Int, l: IntList): Int = {
       l match {
-        case End              => acc
-        case Pair(head, tail) => iter(acc + 1, tail)
+        case End           => acc
+        case Pair(_, tail) => iter(acc + 1, tail)
       }
     }
     iter(0, this)
   }
+  def product: Int = {
+    @tailrec
+    def iter(acc: Int, l: IntList): Int = {
+      l match {
+        case End              => acc
+        case Pair(head, tail) => iter(acc * head, tail)
+      }
+    }
+    iter(1, this)
+  }
+  def double: IntList = {
+    @tailrec
+    def iter(acc: IntList, src: IntList, buffer: IntList): IntList = {
+      (src, buffer) match {
+        case (End, End)              => acc
+        case (End, Pair(head, tail)) => iter(Pair(head, acc), End, tail)
+        case (Pair(head, tail), buffer) =>
+          iter(acc, tail, Pair(head * 2, buffer))
+      }
+    }
+    iter(End, this, End)
+  }
 }
 case object End extends IntList
 final case class Pair(head: Int, tail: IntList) extends IntList
+
+// 4.7.0.1 A Calculator AST
+sealed trait Result
+final case class Value(value: Double) extends Result
+final case class Error(error: String) extends Result
+// I prefer pattern matching in common case
+sealed trait Expression {
+  def eval: Result =
+    this match {
+      case Addition(left, right) =>
+        left.eval match {
+          case error: Error => error
+          case Value(left) =>
+            right.eval match {
+              case error: Error => error
+              case Value(right) => Value(left + right)
+            }
+        }
+      case Subtraction(left, right) =>
+        left.eval match {
+          case error: Error => error
+          case Value(left) =>
+            right.eval match {
+              case error: Error => error
+              case Value(right) => Value(left - right)
+            }
+        }
+      case Number(value) => Value(value)
+      case Division(numerator, denominator) =>
+        numerator.eval match {
+          case error: Error => error
+          case Value(nominator) =>
+            denominator.eval match {
+              case error: Error => error
+              case Value(denominator) =>
+                if (denominator == 0) Error("Division by zero")
+                else Value(nominator / denominator)
+            }
+        }
+      case SquareRoot(value) =>
+        value.eval match {
+          case error: Error => error
+          case Value(value) =>
+            if (value < 0) Error("Square root of negative number")
+            else Value(math.sqrt(value))
+        }
+    }
+}
+final case class Addition(left: Expression, right: Expression)
+    extends Expression
+final case class Subtraction(left: Expression, right: Expression)
+    extends Expression
+final case class Number(value: Double) extends Expression
+final case class Division(numerator: Expression, denominator: Expression)
+    extends Expression
+final case class SquareRoot(value: Expression) extends Expression
