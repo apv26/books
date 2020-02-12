@@ -244,6 +244,47 @@ object Ex4Traits extends App {
   )
   assert(Addition(SquareRoot(Number(4.0)), Number(2.0)).eval == Value(4.0))
   assert(Division(Number(4), Number(0)).eval == Error("Division by zero"))
+
+  println()
+  println(
+    SeqCell(
+      JsString("a string"),
+      SeqCell(JsNumber(1.0), SeqCell(JsBoolean(true), SeqEnd))
+    ).print
+  )
+// res0: String = ["a string", 1.0, true]
+  println()
+  println(
+    ObjectCell(
+      "a",
+      SeqCell(
+        JsNumber(1.0),
+        SeqCell(JsNumber(2.0), SeqCell(JsNumber(3.0), SeqEnd))
+      ),
+      ObjectCell(
+        "b",
+        SeqCell(
+          JsString("a"),
+          SeqCell(JsString("b"), SeqCell(JsString("c"), SeqEnd))
+        ),
+        ObjectCell(
+          "c",
+          ObjectCell(
+            "doh",
+            JsBoolean(true),
+            ObjectCell(
+              "ray",
+              JsBoolean(false),
+              ObjectCell("me", JsNumber(1.0), ObjectEnd)
+            )
+          ),
+          ObjectEnd
+        )
+      )
+    ).print
+  )
+// res1: String = {"a": [1.0, 2.0, 3.0], "b": ["a", "b", "c"], "c": {"
+// doh": true, "ray": false, "me": 1.0}}
 }
 
 // 4.1.4.3 Shaping Up 2 (Da Streets)
@@ -489,3 +530,63 @@ final case class Number(value: Double) extends Expression
 final case class Division(numerator: Expression, denominator: Expression)
     extends Expression
 final case class SquareRoot(value: Expression) extends Expression
+
+// 4.7.0.2 JSON
+
+// Json: JsNumber value: Double
+// | JsString value: String
+// | JsBoolean value: Boolean
+// | JsObject
+// | JsSeq
+// | JsNull
+// JsObject:= ObjectCell key: String value: Json tail: JsObject
+// | ObjectEnd
+// JsSeq:= SeqCell value: Json tail: JsSeq
+// | SeqEnd
+
+sealed trait Json {
+  def print(): String = {
+    @tailrec
+    def iterObj(obj: JsObject, acc: String): String = {
+      obj match {
+        case ObjectEnd => s"{$acc}"
+        case ObjectCell(key, value, tail) => {
+          val json = "\"" + key + "\"" + s": ${value.print()}"
+          val str = if (acc == "") json else s", ${json}"
+          iterObj(tail, acc + str)
+        }
+      }
+    }
+    @tailrec
+    def iterArray(seq: JsSeq, acc: String): String = {
+      seq match {
+        case SeqEnd => s"[$acc]"
+        case SeqCell(value, tail) => {
+          val json = value.print()
+          val str = if (acc == "") json else s", ${json}"
+          iterArray(tail, acc + str)
+        }
+      }
+    }
+    this match {
+      case JsNumber(value)  => value.toString()
+      case JsString(value)  => "\"" + value + "\""
+      case JsBoolean(value) => value.toString()
+      case JsNull           => ""
+      case obj: JsObject    => iterObj(obj, "")
+      case array: JsSeq     => iterArray(array, "")
+    }
+  }
+}
+
+final case class JsNumber(value: Double) extends Json
+final case class JsString(value: String) extends Json
+final case class JsBoolean(value: Boolean) extends Json
+case object JsNull extends Json
+sealed trait JsSeq extends Json
+final case class SeqCell(value: Json, tail: JsSeq) extends JsSeq
+case object SeqEnd extends JsSeq
+sealed trait JsObject extends Json
+final case class ObjectCell(key: String, value: Json, tail: JsObject)
+    extends JsObject
+case object ObjectEnd extends JsObject
