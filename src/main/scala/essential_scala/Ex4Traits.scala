@@ -101,9 +101,11 @@ object Ex4Traits extends App {
           case (Leaf(v), ind) :: ls =>
             inner(ls, ind, acc + mkSpace(ind) + v + "\n")
           case (Node(a, b), ind) :: ls =>
-            inner((a, ind + 1) :: (b, ind + 1) :: ls,
-                  ind,
-                  acc + mkSpace(ind) + "\n")
+            inner(
+              (a, ind + 1) :: (b, ind + 1) :: ls,
+              ind,
+              acc + mkSpace(ind) + "\n"
+            )
         }
       inner(List((t, 0)), 0, "")
     }
@@ -135,8 +137,10 @@ object Ex4Traits extends App {
             case Node(l, r) =>
               mapImp(l :: r :: BranchStub :: toVisit.tail, acc)
             case BranchStub =>
-              mapImp(toVisit.tail,
-                     acc.dropRight(2) ++ Vector(acc.takeRight(2).reduce(Node)))
+              mapImp(
+                toVisit.tail,
+                acc.dropRight(2) ++ Vector(acc.takeRight(2).reduce(Node))
+              )
           }
         }
 
@@ -218,6 +222,28 @@ object Ex4Traits extends App {
   assert(Calculator./(Success(4), 2) == Success(2))
   assert(Calculator./(Success(4), 0) == Failure("Division by zero"))
   assert(Calculator./(Failure("Badness"), 0) == Failure("Badness"))
+
+  // 4.6.3.1 A List of Methods
+  val example = Pair(1, Pair(2, Pair(3, End)))
+  assert(example.length == 3)
+  assert(example.tail.length == 2)
+  assert(End.length == 0)
+
+  assert(example.product == 6)
+  assert(example.tail.product == 6)
+  assert(End.product == 1)
+
+  assert(example.double == Pair(2, Pair(4, Pair(6, End))))
+  assert(example.tail.double == Pair(4, Pair(6, End)))
+  assert(End.double == End)
+
+  assert(
+    Addition(SquareRoot(Number(-1.0)), Number(2.0)).eval == Error(
+      "Square root of negative number"
+    )
+  )
+  assert(Addition(SquareRoot(Number(4.0)), Number(2.0)).eval == Value(4.0))
+  assert(Division(Number(4), Number(0)).eval == Error("Division by zero"))
 }
 
 // 4.1.4.3 Shaping Up 2 (Da Streets)
@@ -239,13 +265,15 @@ sealed trait Rectangular extends Shape {
 case class Rectangle(a: Double, b: Double, color: Color) extends Rectangular
 
 case class Square(
-  a: Double, color: Color
+  a: Double,
+  color: Color
 ) extends Rectangular {
   val b = a
 }
 
 case class Circle(
-  radius: Double, color: Color
+  radius: Double,
+  color: Color
 ) extends Shape {
   val sides = 1
   val perimeter = math.Pi * 2 * radius
@@ -257,13 +285,14 @@ case class Circle(
 object Draw {
   def apply(s: Shape): String = s match {
     case Circle(r, c) => s"A ${Draw(c)} circle of radius ${r}cm"
-    case Rectangle(a, b, c) => s"A ${Draw(c)} rectangle of width ${a}cm and height ${b}cm"
+    case Rectangle(a, b, c) =>
+      s"A ${Draw(c)} rectangle of width ${a}cm and height ${b}cm"
   }
   def apply(c: Color): String = c match {
-    case Red => "red"
+    case Red    => "red"
     case Yellow => "yellow"
-    case Pink => "pink"
-    case c => if(c.isDark) "dark" else "light"
+    case Pink   => "pink"
+    case c      => if (c.isDark) "dark" else "light"
   }
 }
 //[warn] C:\work\books\src\main\scala\essential_scala\Ex4Traits.scala:232:25: match may not be exhaustive.
@@ -302,10 +331,10 @@ final case class Finite(res: Int) extends DivisionResult
 case object Infinite extends DivisionResult
 object Divide {
   def apply(n1: Int, n2: Int) =
-    if(n2 == 0) Infinite else Finite(n1 / n2)
+    if (n2 == 0) Infinite else Finite(n1 / n2)
   def perform(n1: Int, n2: Int) =
     apply(n1, n2) match {
-      case Infinite => "Division by zero is denied"
+      case Infinite  => "Division by zero is denied"
       case Finite(x) => s"Result: $x"
     }
 }
@@ -316,8 +345,8 @@ object Divide {
 sealed trait TrafficLight {
   def next1: TrafficLight
   def next: TrafficLight = this match {
-    case Red1 => Green1
-    case Green1 => Yellow1
+    case Red1    => Green1
+    case Green1  => Yellow1
     case Yellow1 => Red1
   }
 }
@@ -353,8 +382,8 @@ object Calculator {
   }
   def /(c: Calculation, i: Int): Calculation = c match {
     case Success(j) if i == 0 => Failure("Division by zero")
-    case Success(j) => Success(j / i)
-    case Failure(f) => Failure(f)
+    case Success(j)           => Success(j / i)
+    case Failure(f)           => Failure(f)
   }
 }
 
@@ -365,3 +394,98 @@ case object Spring extends Source
 case object Tap extends Source
 // has a and, product type pattern, ADT
 final case class BottledWater(size: Int, source: Source, carbonated: Boolean)
+
+// 4.6.3.1 A List of Methods
+sealed trait IntList {
+
+  def length: Int = {
+    @tailrec
+    def iter(acc: Int, l: IntList): Int = {
+      l match {
+        case End           => acc
+        case Pair(_, tail) => iter(acc + 1, tail)
+      }
+    }
+    iter(0, this)
+  }
+  def product: Int = {
+    @tailrec
+    def iter(acc: Int, l: IntList): Int = {
+      l match {
+        case End              => acc
+        case Pair(head, tail) => iter(acc * head, tail)
+      }
+    }
+    iter(1, this)
+  }
+  def double: IntList = {
+    @tailrec
+    def iter(acc: IntList, src: IntList, buffer: IntList): IntList = {
+      (src, buffer) match {
+        case (End, End)              => acc
+        case (End, Pair(head, tail)) => iter(Pair(head, acc), End, tail)
+        case (Pair(head, tail), buffer) =>
+          iter(acc, tail, Pair(head * 2, buffer))
+      }
+    }
+    iter(End, this, End)
+  }
+}
+case object End extends IntList
+final case class Pair(head: Int, tail: IntList) extends IntList
+
+// 4.7.0.1 A Calculator AST
+sealed trait Result
+final case class Value(value: Double) extends Result
+final case class Error(error: String) extends Result
+// I prefer pattern matching in common case
+sealed trait Expression {
+  def eval: Result =
+    this match {
+      case Addition(left, right) =>
+        left.eval match {
+          case error: Error => error
+          case Value(left) =>
+            right.eval match {
+              case error: Error => error
+              case Value(right) => Value(left + right)
+            }
+        }
+      case Subtraction(left, right) =>
+        left.eval match {
+          case error: Error => error
+          case Value(left) =>
+            right.eval match {
+              case error: Error => error
+              case Value(right) => Value(left - right)
+            }
+        }
+      case Number(value) => Value(value)
+      case Division(numerator, denominator) =>
+        numerator.eval match {
+          case error: Error => error
+          case Value(nominator) =>
+            denominator.eval match {
+              case error: Error => error
+              case Value(denominator) =>
+                if (denominator == 0) Error("Division by zero")
+                else Value(nominator / denominator)
+            }
+        }
+      case SquareRoot(value) =>
+        value.eval match {
+          case error: Error => error
+          case Value(value) =>
+            if (value < 0) Error("Square root of negative number")
+            else Value(math.sqrt(value))
+        }
+    }
+}
+final case class Addition(left: Expression, right: Expression)
+    extends Expression
+final case class Subtraction(left: Expression, right: Expression)
+    extends Expression
+final case class Number(value: Double) extends Expression
+final case class Division(numerator: Expression, denominator: Expression)
+    extends Expression
+final case class SquareRoot(value: Expression) extends Expression

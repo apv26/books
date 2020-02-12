@@ -2,7 +2,7 @@ name := "books"
 
 version := "0.1"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.10"
 
 resolvers ++= Seq(
   Resolver.sonatypeRepo("releases"),
