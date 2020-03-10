@@ -1,4 +1,4 @@
-package essential_scala
+package essentialScala.ex2
 
 object Ex2Expressions extends App {
 

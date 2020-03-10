@@ -1,6 +1,6 @@
-package essential_scala
+package essentialScala.ex3
 
-import essential_scala.Ex3Classes.Adder
+import essentialScala.ex3.Ex3Classes.Adder
 
 object Ex3Classes extends App {
 
