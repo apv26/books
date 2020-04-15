@@ -1,4 +1,4 @@
-package essential_scala
+package essentialScala.ex4
 
 import java.util.Date
 
