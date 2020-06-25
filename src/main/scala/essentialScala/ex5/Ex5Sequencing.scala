@@ -53,6 +53,19 @@ sealed trait LinkedList[A] {
 final case class Pair[A](head: A, tail: LinkedList[A]) extends LinkedList[A]
 final case class End[A]() extends LinkedList[A]
 
+// 5.3.4.1 Tree
+sealed trait Tree[A] {
+  def fold[B](node: (B, B) => B, leaf: A => B): B
+}
+final case class Node[A](left: Tree[A], right: Tree[A]) extends Tree[A] {
+  def fold[B](node: (B, B) => B, leaf: A => B): B =
+    node(left.fold(node, leaf), right.fold(node, leaf))
+}
+final case class Leaf[A](value: A) extends Tree[A] {
+  def fold[B](node: (B, B) => B, leaf: A => B): B =
+    leaf(value)
+}
+
 //  5.5.4.4 Sum
 sealed trait Sum[A, B] {
   def fold[C](error: A => C, success: B => C): C =
@@ -101,4 +114,15 @@ object Ex5Sequencing extends App {
   assert(example(1) == Success(2))
   assert(example(2) == Success(3))
   assert(example(3) == Failure("Index out of bounds"))
+
+  // 5.3.4.1 Tree
+  val tree: Tree[String] =
+    Node(
+      Node(Leaf("To"), Leaf("iterate")),
+      Node(
+        Node(Leaf("is"), Leaf("human,")),
+        Node(Leaf("to"), Node(Leaf("recurse"), Leaf("divine")))
+      )
+    )
+  System.out.println(tree.fold[String]((a, b) => a + " " + b, str => str))
 }
